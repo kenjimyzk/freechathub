@@ -10,14 +10,14 @@ export class GeminiApiBot extends AbstractBot {
   private conversationContext?: ConversationContext
   sdk: GoogleGenerativeAI
 
-  constructor(public apiKey: string) {
+  constructor(public apiKey: string, private modelName: string) {
     super()
     this.sdk = new GoogleGenerativeAI(apiKey)
   }
 
   async doSendMessage(params: SendMessageParams) {
     if (!this.conversationContext) {
-      const model = this.sdk.getGenerativeModel({ model: 'gemini-pro' })
+      const model = this.sdk.getGenerativeModel({ model: this.modelName })
       const chatSession = model.startChat()
       this.conversationContext = { chatSession }
     }
@@ -43,16 +43,20 @@ export class GeminiApiBot extends AbstractBot {
   }
 
   get name() {
-    return 'Gemini Pro'
+    return `Gemini (${this.modelName})`
   }
 }
 
 export class GeminiBot extends AsyncAbstractBot {
   async initializeBot() {
-    const { geminiApiKey } = await getUserConfig()
+    const { geminiApiKey, geminiApiModel } = await getUserConfig()
     if (!geminiApiKey) {
       throw new Error('Gemini API key missing')
     }
-    return new GeminiApiBot(geminiApiKey)
+    if (!geminiApiModel) {
+      // This case should ideally not happen if userConfig has a default
+      throw new Error('Gemini API model not configured')
+    }
+    return new GeminiApiBot(geminiApiKey, geminiApiModel)
   }
 }

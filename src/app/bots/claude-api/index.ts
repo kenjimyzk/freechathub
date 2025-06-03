@@ -61,11 +61,25 @@ export class ClaudeApiBot extends AbstractBot {
   }
 
   private getModelName() {
-    switch (this.config.claudeApiModel) {
-      case ClaudeAPIModel['claude-instant-1']:
+    const model = this.config.claudeApiModel
+    switch (model) {
+      case ClaudeAPIModel['claude-instant-1']: // Value is 'claude-instant-v1'
         return 'claude-instant-1.2'
-      default:
+      case ClaudeAPIModel['claude-2']: // Value is 'claude-2'
         return 'claude-2.1'
+      // For new models, the enum value is the correct API model string
+      case ClaudeAPIModel['claude-3-opus-20240229']:
+      case ClaudeAPIModel['claude-3-sonnet-20240229']:
+      case ClaudeAPIModel['claude-3-haiku-20240307']:
+      case ClaudeAPIModel['claude-3-5-sonnet-20240620']:
+        return model
+      default:
+        // Fallback for any unexpected model, though ideally all supported models are handled.
+        // Returning the model value directly might work if it's a new, unhandled-but-valid model string.
+        // Or, default to a known recent model as a safer bet.
+        // For now, let's return the model value directly, assuming it's a valid API string.
+        console.warn(`Unknown Claude API model: ${model}, using it directly.`)
+        return model
     }
   }
 

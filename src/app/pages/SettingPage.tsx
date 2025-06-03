@@ -18,6 +18,7 @@ import ClaudeOpenRouterSettings from '~app/components/Settings/ClaudeOpenRouterS
 import ClaudePoeSettings from '~app/components/Settings/ClaudePoeSettings'
 import ClaudeWebappSettings from '~app/components/Settings/ClaudeWebappSettings'
 import EnabledBotsSettings from '~app/components/Settings/EnabledBotsSettings'
+import GeminiAPISettings from '~app/components/Settings/GeminiAPISettings';
 import ExportDataPanel from '~app/components/Settings/ExportDataPanel'
 import PerplexityAPISettings from '~app/components/Settings/PerplexityAPISettings'
 import ShortcutPanel from '~app/components/Settings/ShortcutPanel'
@@ -148,28 +149,7 @@ function SettingPage() {
             )}
           </ChatBotSettingPanel>
           <ChatBotSettingPanel title="Gemini Pro">
-            <div className="flex flex-col gap-1">
-              <p className="font-medium text-sm">
-                API Key (
-                <a
-                  href="https://makersuite.google.com/app/apikey"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline"
-                >
-                  how to create key
-                </a>
-                )
-              </p>
-              <Input
-                className="w-[400px]"
-                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                value={userConfig.geminiApiKey}
-                onChange={(e) => updateConfigValue({ geminiApiKey: e.currentTarget.value })}
-                type="password"
-              />
-              <Blockquote className="mt-1">{t('Your keys are stored locally')}</Blockquote>
-            </div>
+            <GeminiAPISettings userConfig={userConfig} updateConfigValue={updateConfigValue} />
           </ChatBotSettingPanel>
           <ChatBotSettingPanel title="Bing">
             <div className="flex flex-row gap-5 items-center">

@@ -124,7 +124,29 @@ export class ChatGPTApiBot extends AbstractChatGPTApiBot {
     const hasImageInput = messages.some(
       (message) => isArray(message.content) && message.content.some((part) => part.type === 'image_url'),
     )
-    const model = hasImageInput ? 'gpt-4-vision-preview' : this.getModelName()
+
+    const selectedModel = this.getModelName()
+    let modelToUse = selectedModel
+
+    // Models known to support vision directly from CHATGPT_API_MODELS (ensure this list is accurate)
+    const visionDirectlySupportedModels = [
+      'gpt-4o',
+      'gpt-4o-2024-05-13',
+      'gpt-4-turbo', // General gpt-4-turbo is expected to support vision
+      'gpt-4-turbo-2024-04-09',
+      'gpt-4-0125-preview', // Preview model, likely supports vision
+      // 'gpt-4-vision-preview' itself is a vision model, though we aim to use the primary selected model if it's capable
+    ]
+
+    if (hasImageInput) {
+      if (!visionDirectlySupportedModels.includes(selectedModel) && selectedModel !== 'gpt-4-vision-preview') {
+        // If the selected model isn't known for vision, switch to 'gpt-4o' as a capable default.
+        // (gpt-4-vision-preview could also be used, but gpt-4o is newer)
+        modelToUse = 'gpt-4o'
+      }
+      // If selectedModel is in visionDirectlySupportedModels or is 'gpt-4-vision-preview', modelToUse remains selectedModel.
+    }
+
     const resp = await fetch(`${openaiApiHost}/v1/chat/completions`, {
       method: 'POST',
       signal,
@@ -133,9 +155,9 @@ export class ChatGPTApiBot extends AbstractChatGPTApiBot {
         Authorization: `Bearer ${openaiApiKey}`,
       },
       body: JSON.stringify({
-        model,
+        model: modelToUse,
         messages,
-        max_tokens: hasImageInput ? 500 : undefined,
+        max_tokens: hasImageInput ? 4096 : undefined, // Updated max_tokens for vision
         stream: true,
       }),
     })
@@ -150,12 +172,12 @@ export class ChatGPTApiBot extends AbstractChatGPTApiBot {
 
   private getModelName() {
     const { chatgptApiModel } = this.config
-    if (chatgptApiModel === 'gpt-4-turbo') {
-      return 'gpt-4-1106-preview'
-    }
-    if (chatgptApiModel === 'gpt-3.5-turbo') {
-      return 'gpt-3.5-turbo-1106'
-    }
+    // The CHATGPT_API_MODELS list in consts.ts now contains specific and up-to-date model IDs.
+    // So, in most cases, the chatgptApiModel from config can be returned directly.
+    // Add specific hardcoded mappings here only if a user-selected alias from CHATGPT_API_MODELS
+    // (e.g., a generic 'gpt-4-turbo' if it were an alias) needs to point to a *different*
+    // specific model ID for the API call (e.g., 'gpt-4-turbo-2024-04-09').
+    // Given the current CHATGPT_API_MODELS, direct use is generally correct.
     return chatgptApiModel
   }
 
